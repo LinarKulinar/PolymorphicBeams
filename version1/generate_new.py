@@ -105,7 +105,7 @@ def plot_amplitude(size, count, generate=False):
     x = np.linspace(-size, size, count)
     y = np.linspace(-size, size, count)
     v_e = np.vectorize(e)
-    #    z = v_e(x, y)
+    # z = v_e(x, y)
 
     try:
         if generate:

@@ -9,13 +9,13 @@ import pickle
 
 
 def writedata(size, count, amplitude, phase):
-    with open('data1_gSquare_{:.1f}_{:.0f}.pickle'.format(size, count), 'wb') as f:
+    with open('data0_{:.3f}_{:.0f}.pickle'.format(size, count), 'wb') as f:
         pickle.dump(amplitude, f)
         pickle.dump(phase, f)
 
 
 def loaddata(size, count):
-    with open('data1_gSquare_{:.1f}_{:.0f}.pickle'.format(size, count), 'rb') as f:
+    with open('data0_{:.3f}_{:.0f}.pickle'.format(size, count), 'rb') as f:
         z1 = pickle.load(f)
         z2 = pickle.load(f)
     return z1, z2
@@ -92,9 +92,9 @@ def e(x, y):
     k = 2 * np.pi / wave_len
     f = 0.05
     T = 2 * np.pi
-    g = lambda t: t ** 2  # function dependent on t
+    g = lambda t: 1  # function dependent on t
     integr_func = lambda t: g(t) * np.exp(
-        -1j * k / f * r1(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
+        -1j * k / f * r0(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
 
     field = complex_quadrature(integr_func, 0, 2 * np.pi, limit=200)  # eq.2 from Rodrigo 2018
     return cmath.polar(field[0])  # field  on polar complex
@@ -109,7 +109,7 @@ def plot_amplitude(size, count, generate=False):
 
     try:
         if generate:
-            raise Exception("Need generate")  # костыль
+            raise Exception("Need generate")  # костыль сраный
         z1, z2 = loaddata(size, count)
     except (FileNotFoundError, Exception):
         z1 = np.zeros([len(x), len(y)])
@@ -125,12 +125,13 @@ def plot_amplitude(size, count, generate=False):
     # pcolormesh of interpolated uniform grid with log colormap
     z1_max = np.max(z1)
     z1_min = np.min(z1)
-
-    plt.pcolor(x, y, z1, cmap='gray', norm=colors.LogNorm(vmin=z1_min, vmax=z1_max),
-               label="Амплитуда")
+    fig, ax = plt.subplots(figsize=(6, 6))  # Делает соотношение сторон как 1 к 1
+    ax.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max,
+              label="Амплитуда")
     plt.show()
-    plt.pcolor(x, y, z2, cmap='gray', vmin=0, vmax=2 * np.pi, label="Фаза")
+    fig, ax = plt.subplots(figsize=(6, 6))  # Делает соотношение сторон как 1 к 1
+    ax.pcolor(x, y, z2, cmap='gray', vmin=0, vmax=2 * np.pi, label="Фаза")
     plt.show()
 
 
-plot_amplitude(1.2, 250, generate=False)
+plot_amplitude(4, 180)

@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy.fft import irfft2, rfft2
+from numpy.fft import *
 import functools
 import cmath
 
@@ -49,9 +49,9 @@ def plot_amplitude(x, y, z):
     # pcolormesh of interpolated uniform grid with log colormap
     z_max = np.max(z)
     z_min = np.min(z)
-    fig, ax = plt.subplots(figsize=(6, 6)) # Делает соотношение сторон как 1 к 1
+    fig, ax = plt.subplots(figsize=(6, 6))  # Делает соотношение сторон как 1 к 1
     ax.pcolor(x, y, z, cmap='gray', vmin=z_min, vmax=z_max,
-               label="Амплитуда")
+              label="Амплитуда")
     plt.show()
 
 
@@ -75,20 +75,15 @@ def generate_2D_from_parametric(size, count):
 
 
 # plotParam(r0)
-x, y, z = generate_2D_from_parametric(1.2, 250)
-#plot_amplitude(x, y, z)
-z1 = irfft2(z, (250, 250))
-plot_amplitude(x, y, z1)
-z2 = rfft2(z, (250, 250))
-# for m in z2:
-#    z2 = [cmath.polar(n) for n in m]
+x, y, z = generate_2D_from_parametric(1.5, 250)
+plot_amplitude(x, y, z)
+z1 = ifft2(z, (250, 250))
+z2 = np.zeros_like(z1, dtype=float)
+z3 = np.zeros_like(z1, dtype=float)
 
-#z2 = [[cmath.polar(n) for n in m] for m in z2]
-
-for i in range(len(z2)):
-    for j in range(len(z2[0])):
-        (z2[i,j],) = cmath.polar(z2[i,j])
-
-print(type(z2[1, 1]))
-
-plot_amplitude(x[:z2.shape[1]], y[:z2.shape[0]], z2)
+for i in range(len(z1)):
+    for j in range(len(z1[0])):
+        z2[i, j] = cmath.polar(z1[i, j])[0]
+        z3[i, j] = cmath.polar(z1[i, j])[1]
+plot_amplitude(x, y, z2)
+plot_amplitude(x, y, z3)
