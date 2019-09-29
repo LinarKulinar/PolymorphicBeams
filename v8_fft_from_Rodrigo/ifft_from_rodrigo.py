@@ -7,6 +7,11 @@ from scipy.integrate import quad
 import functools
 import pickle
 
+"""
+Тут считается по формуле из Rodrigo 2016 преобразование фурье от параметрических функций.
+При отрисовке фокус взят как 1/wavelen, чтобы стандартное ifft из scipy.fftpack по масштабу соответствовало
+преобразованию фурье из статьи Rodrigo.
+"""
 
 def writedata(size, count, amplitude, phase):
     with open('data0_{:.1f}_{:.0f}.pickle'.format(size, count), 'wb') as f:
@@ -21,8 +26,9 @@ def loaddata(size, count):
     return z1, z2
 
 
-def r(a, b, n1, n2, n3, m, t):
+def r(p, a, b, n1, n2, n3, m, t):
     """
+    :param p: lenth of sweeping
     :param a: option 1
     :param b: option 2
     :param n1: option 3
@@ -32,10 +38,10 @@ def r(a, b, n1, n2, n3, m, t):
     :param t: polar angle
     :return: nature curve (The Superformula)
     """
-    p = 1  # function dependent on t
     first = np.abs(1 / a * np.cos(m / 4 * t))
     second = np.abs(1 / b * np.sin(m / 4 * t))
-    return (first ** n2 + second ** n3) ** (-1 / n1)
+    return p * ((first ** n2 + second ** n3) ** (-1 / n1))
+
 
 
 def plotParam(r):
@@ -74,12 +80,14 @@ def complex_quadrature(func, a, b, **kwargs):
     return (real_integral[0] + 1j * imag_integral[0], real_integral[1:], imag_integral[1:])
 
 
-r0 = functools.partial(r, 1, 1, 1, 1, 1, 0)  # circle
-r1 = functools.partial(r, 1.6, 1, 1.5, 2, 7.5, 12)  # rose
-r2 = functools.partial(r, 0.9, 10, 4.2, 17, 1.5, 4)  # sandglass (песочные часы)
-r3 = functools.partial(r, 1, 1, 15, 15, 15, 4)  # modified-square
-r4 = functools.partial(r, 10, 10, 2, 7, 7, 5)  # starfish
-r5 = functools.partial(r, 1, 1, 5, 5, 5, 10)  # spiral
+r0 = functools.partial(r, 1, 1, 1, 1, 1, 1, 0)  # circle
+r1 = functools.partial(r, 0.41, 1.6, 1, 1.5, 2, 7.5, 12)  # rose
+r2 = functools.partial(r, 0.40, 0.9, 10, 4.2, 17, 1.5, 4)  # sandglass (песочные часы)
+r3 = functools.partial(r, 0.74, 1, 1, 15, 15, 15, 4)  # modified-square
+r4 = functools.partial(r, 0.0001329, 10, 10, 2, 7, 7, 5)  # starfish
+r5 = functools.partial(r, 0.81, 1, 1, 5, 5, 5, 10)  # bad spiral, flower
+r6 = functools.partial(r, 0.588, 1, 1, 8.5, 15, 15, 3)  # modified-triangle blunt (тупые) corners
+r7 = functools.partial(r, 1.04, 0.7, 0.7, 24, 45, 45, 3)  # modified-triangle sharp (острые) corners
 
 
 def e(x, y):
@@ -90,7 +98,7 @@ def e(x, y):
     """
     wave_len = 532e-4
     k = 2 * np.pi / wave_len
-    f = 100
+    f = 1/wave_len
     g = lambda t: t  # function dependent on t
     integr_func = lambda t: g(t) * np.exp(
         -1j * k / f * r0(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
@@ -99,7 +107,7 @@ def e(x, y):
     return cmath.polar(field[0])  # field  on polar complex
 
 
-#def if_in_triangle(a = (0,1),b = (1,0), c = ):
+
 
 
 
