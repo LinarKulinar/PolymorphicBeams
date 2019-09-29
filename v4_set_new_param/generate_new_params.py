@@ -88,16 +88,20 @@ def e(x, y):
     :param y: axis y
     :return: amplitude, phase, complex amplitude in the point
     """
-    wave_len = 532e-9
+    wave_len = 532e-4
     k = 2 * np.pi / wave_len
-    f = 0.05
+    f = 100
     T = 2 * np.pi
     g = lambda t: t  # function dependent on t
     integr_func = lambda t: g(t) * np.exp(
-        -1j * k / f * r1(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
+        -1j * k / f * r0(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
 
     field = complex_quadrature(integr_func, 0, 2 * np.pi, limit=200)  # eq.2 from Rodrigo 2018
     return cmath.polar(field[0])  # field  on polar complex
+
+
+#def if_in_triangle(a = (0,1),b = (1,0), c = ):
+
 
 
 def plot_amplitude(size, count, generate=False):
@@ -107,6 +111,7 @@ def plot_amplitude(size, count, generate=False):
     v_e = np.vectorize(e)
     # z = v_e(x, y)
 
+    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
     try:
         if generate:
             raise Exception("Need generate")  # костыль
@@ -129,9 +134,11 @@ def plot_amplitude(size, count, generate=False):
     plt.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max,
                label="Амплитуда")
     plt.show()
+    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
     plt.pcolor(x, y, z2, cmap='gray', vmin=0, vmax=2 * np.pi, label="Фаза")
     plt.show()
+    # plt.savefig('0_'+str(size) + "_" + str(count))
 
 
 
-plot_amplitude(1.2, 25,generate=False)
+plot_amplitude(100, 150,generate=False)

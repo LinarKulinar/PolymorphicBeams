@@ -45,7 +45,7 @@ r4 = functools.partial(r, 10, 10, 2, 7, 7, 5)  # starfish
 r5 = functools.partial(r, 1, 1, 5, 5, 5, 10)  # spiral
 
 
-def plot_amplitude(x, y, z):
+def plot_in_gray(x, y, z):
     # pcolormesh of interpolated uniform grid with log colormap
     z_max = np.max(z)
     z_min = np.min(z)
@@ -55,7 +55,8 @@ def plot_amplitude(x, y, z):
     plt.show()
 
 
-def generate_2D_from_parametric(size, count):
+
+def generate_2D_from_parametric(func, size, count):
     # define grid.
     x = np.linspace(-size, size, count)
     y = np.linspace(-size, size, count)
@@ -64,8 +65,8 @@ def generate_2D_from_parametric(size, count):
     z0 = np.zeros([len(x), len(y)])
 
     t = np.linspace(0 * np.pi, 2 * np.pi, 10000)
-    xparam = r0(t) * np.sin(t)
-    yparam = r0(t) * np.cos(t)
+    xparam = func(t) * np.cos(t)
+    yparam = func(t) * np.sin(t)
 
     for i in range(len(xparam)):
         indx = int(round(xparam[i] / (2 * size / count) + len(x) / 2))
@@ -75,10 +76,10 @@ def generate_2D_from_parametric(size, count):
 
 
 # plotParam(r0)
-x, y, z = generate_2D_from_parametric(1.2, 250)
+x, y, z = generate_2D_from_parametric(r0, 1.2, 250)
 #plot_amplitude(x, y, z)
 z1 = irfft2(z, (250, 250))
-plot_amplitude(x, y, z1)
+plot_in_gray(x, y, z1)
 z2 = rfft2(z, (250, 250))
 # for m in z2:
 #    z2 = [cmath.polar(n) for n in m]
@@ -91,4 +92,4 @@ for i in range(len(z2)):
 
 print(type(z2[1, 1]))
 
-plot_amplitude(x[:z2.shape[1]], y[:z2.shape[0]], z2)
+plot_in_gray(x[:z2.shape[1]], y[:z2.shape[0]], z2)

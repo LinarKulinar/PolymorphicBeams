@@ -6,16 +6,17 @@ import cmath
 from scipy.integrate import quad
 import functools
 import pickle
+from numpy.fft import *
 
 
 def writedata(size, count, amplitude, phase):
-    with open('data0_{:.1f}_{:.0f}.pickle'.format(size, count), 'wb') as f:
+    with open('data2_{:.1f}_{:.0f}.pickle'.format(size, count), 'wb') as f:
         pickle.dump(amplitude, f)
         pickle.dump(phase, f)
 
 
 def loaddata(size, count):
-    with open('data0_{:.1f}_{:.0f}.pickle'.format(size, count), 'rb') as f:
+    with open('../v4_set_new_param/data2_{:.1f}_{:.0f}.pickle'.format(size, count), 'rb') as f:
         z1 = pickle.load(f)
         z2 = pickle.load(f)
     return z1, z2
@@ -88,16 +89,19 @@ def e(x, y):
     :param y: axis y
     :return: amplitude, phase, complex amplitude in the point
     """
-    wave_len = 532e-9
+    wave_len = 532e-4
     k = 2 * np.pi / wave_len
-    f = 0.05
+    f = 100
     T = 2 * np.pi
     g = lambda t: t  # function dependent on t
     integr_func = lambda t: g(t) * np.exp(
-        -1j * k / f * r1(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
+        -1j * k / f * r2(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
 
     field = complex_quadrature(integr_func, 0, 2 * np.pi, limit=200)  # eq.2 from Rodrigo 2018
     return cmath.polar(field[0])  # field  on polar complex
+
+
+# def if_in_triangle(a = (0,1),b = (1,0), c = ):
 
 
 def plot_amplitude(size, count, generate=False):
@@ -125,13 +129,41 @@ def plot_amplitude(size, count, generate=False):
     # pcolormesh of interpolated uniform grid with log colormap
     z1_max = np.max(z1)
     z1_min = np.min(z1)
-
+    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
     plt.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max,
                label="Амплитуда")
     plt.show()
+    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
     plt.pcolor(x, y, z2, cmap='gray', vmin=0, vmax=2 * np.pi, label="Фаза")
+    plt.show()
+    # plt.savefig('0_'+str(size) + "_" + str(count))
+
+    field = np.zeros(z1.shape, dtype=complex)
+    for i in range(len(z1)):
+        for j in range(len(z1[0])):
+            field[i, j] = cmath.rect(z1[i, j], z2[j, i])  # из полярных в комплексный вид
+            # field[i, j] = cmath.rect(1, z2[j, i])  # из полярных в комплексный вид
+
+    field_fft = fft2(field)
+    field_fft = fftshift(field_fft)
+
+    field_ampl = np.zeros(field_fft.shape)
+    field_phase = np.zeros(field_fft.shape)
+    for i in range(len(field_fft)):
+        for j in range(len(field_fft[0])):
+            tmp = cmath.polar(field_fft[i, j])
+            field_ampl[i, j] = tmp[0]
+            field_phase[j, i] = tmp[1]
+
+    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    plt.pcolor(x, y, field_ampl, cmap='gray',
+               label="Амплитуда")
+    plt.show()
+
+    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    plt.pcolor(x, y, field_phase, cmap='gray',
+               label="Амплитуда")
     plt.show()
 
 
-
-plot_amplitude(1.2, 25,generate=False)
+plot_amplitude(10, 500, generate=False)
