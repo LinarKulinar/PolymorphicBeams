@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import colors
 from numpy.fft import *
 import functools
 import cmath
+from datetime import datetime
+import time
 
 """
 Тут отрисовывается из растра обратное преобразование фурье. В этом файле используются нормированные функции (|r|<=1).
@@ -38,6 +39,9 @@ def plotParamSubplot(r, number_field_where_plot, text):
     y = r(t) * np.cos(t)
     ax[number_field_where_plot].plot(x, y, label="param func")
     ax[number_field_where_plot].set_title(text)
+    # ax[number_field_where_plot].savefig(
+    #    func_text + "_num-" + str(number_pixel_on_mm) + "_size-" + str(size_image) + "_pixels-" + str(
+    #        size_plot_field) + "/" + str(number_field_where_plot) + ".png")
 
 
 r0 = functools.partial(r, 1, 1, 1, 1, 1, 1, 0)  # circle
@@ -58,6 +62,11 @@ def plot_in_gray_subplot(x, y, z, number_field_where_plot, text_on_subplot):
                                        # norm=colors.LogNorm(vmin=z_min, vmax=z_max),
                                        label="Амплитуда")
     ax[number_field_where_plot].set_title(text_on_subplot)
+    # plt.pcolor(x, y, z, cmap='gray', vmin=z_min, vmax=z_max,
+    #            # norm=colors.LogNorm(vmin=z_min, vmax=z_max),
+    #            label="Амплитуда")
+    # plt.savefig(func_text + "_num-" + str(number_pixel_on_mm) + "_size-" + str(size_image) + "_pixels-" + str(
+    #     summary_pixels_on_field) + "/" + str(number_field_where_plot[0]) + str(number_field_where_plot[1]) + ".png")
 
 
 def generate_2D_from_parametric(func, size, count):
@@ -76,31 +85,35 @@ def generate_2D_from_parametric(func, size, count):
         indx = int(round(xparam[i] / (2 * size / count) + len(x) / 2))
         indy = int(round(yparam[i] / (2 * size / count) + len(y) / 2))
         z0[indx, indy] = 1
-        z0[indx - 1, indy] = 1
-        z0[indx + 1, indy] = 1
-        z0[indx, indy - 1] = 1
-        z0[indx, indy + 1] = 1
+        # z0[indx - 1, indy] = 1
+        # z0[indx + 1, indy] = 1
+        # z0[indx, indy - 1] = 1
+        # z0[indx, indy + 1] = 1
     return x, y, z0
 
+
 func = r0  # Отрисовываемая функция
-number_pixel_on_mm = 500  # число пикселей на мм
-size_image = 2  # размер картинки, которую мы генерируем
+func_text = "r0"
+number_pixel_on_mm = 25  # число пикселей на мм
+size_image = 10  # размер картинки, которую мы генерируем
 
-size_plot_field = size_image * number_pixel_on_mm  # Разрешение входной и выходной картинки
-size_plot_field = size_plot_field if size_plot_field % 2 == 1 else size_plot_field + 1  # делаем разрешение не кратным 2
-print("size_plot_field", size_plot_field)
+print(func_text)
+print("number_pixel_on_mm =", number_pixel_on_mm)
+print("size_image =", size_image)
 
-
-
+summary_pixels_on_field = size_image * number_pixel_on_mm  # Разрешение входной и выходной картинки
+summary_pixels_on_field = summary_pixels_on_field if summary_pixels_on_field % 2 == 1 else summary_pixels_on_field + 1  # делаем разрешение не кратным 2
+print("summary_pixels_on_field =", summary_pixels_on_field)
+print("Вычисления запущены: ", datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S"))
+start_time = time.time()  # запоминаем время начала вычислений
 
 fig, ax = plt.subplots(2, 2, figsize=(8, 8))  # создаем поля для отрисовки
 plotParamSubplot(func, (0, 0), "Параметрически")
 
-x, y, z = generate_2D_from_parametric(func, 10, size_plot_field)  # генерим растр
+x, y, z = generate_2D_from_parametric(func, size_image, summary_pixels_on_field)  # генерим растр
 plot_in_gray_subplot(x, y, z, (0, 1), "Растровое изображение")
 
-complex_field = ifft2(z, (size_plot_field, size_plot_field
-                          ))
+complex_field = ifft2(z, (summary_pixels_on_field, summary_pixels_on_field))
 complex_field = ifftshift(complex_field)
 ampl = np.zeros_like(complex_field, dtype=float)
 phase = np.zeros_like(complex_field, dtype=float)
@@ -110,6 +123,9 @@ for i in range(len(complex_field)):
         ampl[i, j] = cmath.polar(complex_field[i, j])[0]
         phase[i, j] = cmath.polar(complex_field[i, j])[1]
 plot_in_gray_subplot(x, y, ampl, (1, 0), "Амплитуда")
+phase = phase + np.pi
 plot_in_gray_subplot(x, y, phase, (1, 1), "Фаза")
-
+plt.savefig(func_text + "_num-" + str(number_pixel_on_mm) + "_size-" + str(size_image) + "_pixels-" + str(
+    summary_pixels_on_field) + ".png")
+print("Результат посчитан за %s секунд" % (time.time() - start_time))
 plt.show()

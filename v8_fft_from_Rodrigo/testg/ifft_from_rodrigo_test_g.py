@@ -16,14 +16,14 @@ import time
 
 
 def writedata(size, count, amplitude, phase):
-    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}.pickle'.format(number_pixel_on_mm, size,
+    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_g-t.pickle'.format(number_pixel_on_mm, size,
                                                                                                count), 'wb') as f:
         pickle.dump(amplitude, f)
         pickle.dump(phase, f)
 
 
 def loaddata(size, count):
-    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}.pickle'.format(number_pixel_on_mm, size,
+    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_g-t.pickle'.format(number_pixel_on_mm, size,
                                                                                                count), 'rb') as f:
         z1 = pickle.load(f)
         z2 = pickle.load(f)
@@ -132,17 +132,16 @@ def plot_amplitude(size, count, generate=False):
                 if di ** 2 + dj ** 2 <= middle ** 2:  # Если мы находимся внутри круга с радиусом, равным count/2
                     z1[i, j], z2[j, i] = e(x[i], y[j])
                     z2[j, i] += cmath.pi
-                    #print(i, j, '{0:.3f} {0:.3f}'.format(z1[i, j], z2[i, j]))
-            print("column" + str(i) + "is computing")
+                    print(i, j, '{0:.3f} {0:.3f}'.format(z1[i, j], z2[i, j]))
+            # print("column " + str(i) + " is computing")
 
     writedata(size, count, z1, z2)
 
     # pcolormesh of interpolated uniform grid with log colormap
     z1_max = np.max(z1)
     z1_min = np.min(z1)
-    plt.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max,
-               label="Амплитуда")
-    plt.savefig(str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_AMPLITUDE.png'.format(number_pixel_on_mm, size,
+    plt.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max, label="Амплитуда")
+    plt.savefig(str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_g-t_AMPLITUDE.png'.format(number_pixel_on_mm, size,
                                                                                               count))
     plt.show()
     plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
@@ -150,15 +149,15 @@ def plot_amplitude(size, count, generate=False):
     z2_min = np.min(z2)
     plt.pcolor(x, y, z2, cmap='gray', vmin=z2_min, vmax=z2_max, label="Фаза")
     #plt.colorbar()
-    plt.savefig(str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_PHASE.png'.format(number_pixel_on_mm, size,
+    plt.savefig(str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_g-t_PHASE.png'.format(number_pixel_on_mm, size,
                                                                                           count))
     plt.show()
 
 
 func = r0  # Отрисовываемая функция
 func_text = "r0"
-number_pixel_on_mm = 15  # число пикселей на мм
-size_image = 10  # размер картинки, которую мы генерируем
+number_pixel_on_mm = 75  # число пикселей на мм
+size_image = 2  # размер картинки, которую мы генерируем
 
 print(func_text)
 print("number_pixel_on_mm =", number_pixel_on_mm)

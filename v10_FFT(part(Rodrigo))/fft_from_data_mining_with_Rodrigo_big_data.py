@@ -1,30 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import scipy
 import cmath
 from scipy.integrate import quad
 import functools
 import pickle
+from numpy.fft import *
 from datetime import datetime
 import time
 
-"""
-Тут считается по формуле из Rodrigo 2016 преобразование фурье от параметрических функций.
-При отрисовке фокус взят как 1/wavelen, чтобы стандартное ifft из scipy.fftpack по масштабу соответствовало
-преобразованию фурье из статьи Rodrigo.
-"""
 
-
-def writedata(size, count, amplitude, phase):
-    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}.pickle'.format(number_pixel_on_mm, size,
-                                                                                               count), 'wb') as f:
+def writedata(size, count, amplitude, phase, number_pack):
+    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_pack-{:.0f}.pickle'.format(
+            number_pixel_on_mm, size,
+            count, number_pack), 'wb') as f:
         pickle.dump(amplitude, f)
         pickle.dump(phase, f)
 
 
-def loaddata(size, count):
-    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}.pickle'.format(number_pixel_on_mm, size,
-                                                                                               count), 'rb') as f:
+def loaddata(size, count, number_pack):
+    with open('data_' + str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_pack-{:.0f}.pickle'.format(
+            number_pixel_on_mm, size,
+            count, number_pack), 'rb') as f:
         z1 = pickle.load(f)
         z2 = pickle.load(f)
     return z1, z2
@@ -101,7 +99,7 @@ def e(x, y):
     """
     wave_len = 532e-4
     k = 2 * np.pi / wave_len
-    f = 1 / wave_len
+    f = 1 / wave_len / 2.6
     g = lambda t: t  # function dependent on t
     integr_func = lambda t: g(t) * np.exp(
         -1j * k / f * func(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
@@ -110,55 +108,107 @@ def e(x, y):
     return cmath.polar(field[0])  # field  on polar complex
 
 
+# def if_in_triangle(a = (0,1),b = (1,0), c = ):
+
+
 def plot_amplitude(size, count, generate=False):
     # define grid.
-    x = np.linspace(-size, size, count+1)  # мы подразумеваем дальше в коде, что поле XY-квадратное
-    y = np.linspace(-size, size, count+1)
+    x = np.linspace(-size, size, count)
+    y = np.linspace(-size, size, count)
+    v_e = np.vectorize(e)
+    # z = v_e(x, y)
 
-    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
     try:
         if generate:
             raise Exception("Need generate")  # костыль
-        z1, z2 = loaddata(size, count)
+        z1, z2 = loaddata(size, count, 1)
     except (FileNotFoundError, Exception):
-        z1 = np.zeros([count, count])
-        z2 = np.zeros([count, count])
-
+        z1 = np.zeros([len(x), len(y)])
+        z2 = np.zeros([len(x), len(y)])
+        column_time = time.time()
         for i in range(count):
             for j in range(count):
                 middle = count / 2
                 di = abs(i - middle)
                 dj = abs(j - middle)
+
                 if di ** 2 + dj ** 2 <= middle ** 2:  # Если мы находимся внутри круга с радиусом, равным count/2
                     z1[i, j], z2[j, i] = e(x[i], y[j])
                     z2[j, i] += cmath.pi
-                    #print(i, j, '{0:.3f} {0:.3f}'.format(z1[i, j], z2[i, j]))
-            print("column" + str(i) + "is computing")
+                    # print(i, j, '{0:.3f} {0:.3f}'.format(z1[i, j], z2[i, j]))
+            print("column " + str(i) + " is computing " + str((time.time() - column_time)) + " sec")
+    writedata(size, count, z1, z2, 1)
 
-    writedata(size, count, z1, z2)
+    # # pcolormesh of interpolated uniform grid with log colormap
+    # z1_max = np.max(z1)
+    # z1_min = np.min(z1)
+    # plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    # plt.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max,
+    #            label="Амплитуда")
+    # plt.show()
+    # plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    # z2_max = np.max(z2)
+    # z2_min = np.min(z2)
+    # plt.pcolor(x, y, z2, cmap='gray', vmin=z2_min, vmax=z2_max, label="Фаза")
+    # plt.show()
+    # # plt.savefig('0_'+str(size) + "_" + str(count))
 
-    # pcolormesh of interpolated uniform grid with log colormap
-    z1_max = np.max(z1)
-    z1_min = np.min(z1)
-    plt.pcolor(x, y, z1, cmap='gray', vmin=z1_min, vmax=z1_max,
-               label="Амплитуда")
-    plt.savefig(str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_AMPLITUDE.png'.format(number_pixel_on_mm, size,
-                                                                                              count))
-    plt.show()
-    plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
-    z2_max = np.max(z2)
-    z2_min = np.min(z2)
-    plt.pcolor(x, y, z2, cmap='gray', vmin=z2_min, vmax=z2_max, label="Фаза")
-    #plt.colorbar()
-    plt.savefig(str(func_text) + '_num-{:.0f}_size-{:.1f}_pixels-{:.0f}_PHASE.png'.format(number_pixel_on_mm, size,
-                                                                                          count))
-    plt.show()
+    field = np.zeros(z1.shape, dtype=complex)
+    field1 = np.zeros(z1.shape, dtype=complex)
+    for i in range(len(z1)):
+        for j in range(len(z1[0])):
+            middle = count / 2
+            di = abs(i - middle)
+            dj = abs(j - middle)
+            if di ** 2 + dj ** 2 <= middle ** 2:  # Если мы находимся внутри круга с радиусом, равным count/2
+                field[i, j] = cmath.rect(z1[i, j], z2[j, i])  # из полярных в комплексный вид
+                field1[i, j] = cmath.rect(1, z2[j, i])  # из полярных в комплексный вид
+
+    field_fft = fft2(field)
+    field_fft = fftshift(field_fft)
+    field1_fft = fft2(field)
+    field1_fft = fftshift(field_fft)
+
+    field_ampl = np.zeros(field_fft.shape)
+    field_phase = np.zeros(field_fft.shape)
+    field1_ampl = np.zeros(field1_fft.shape)
+    field1_phase = np.zeros(field1_fft.shape)
+    for i in range(len(field_fft)):
+        for j in range(len(field_fft[0])):
+            tmp = cmath.polar(field_fft[i, j])
+            field_ampl[i, j] = tmp[0]
+            field_phase[j, i] = tmp[1]
+            tmp = cmath.polar(field1_fft[i, j])
+            field1_ampl[i, j] = tmp[0]
+            field1_phase[j, i] = tmp[1]
+
+    writedata(size, count, field_ampl, field_phase, 2)
+    writedata(size, count, field1_ampl, field1_phase, 3)
+    # plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    # plt.pcolor(x, y, field_ampl, cmap='gray',
+    #            label="Амплитуда")
+    # plt.show()
+    #
+    # plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    # plt.pcolor(x, y, field_phase, cmap='gray',
+    #            label="Фаза")
+    # plt.show()
+    #
+    # plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    # plt.pcolor(x, y, field1_ampl, cmap='gray',
+    #            label="Амплитуда")
+    # plt.show()
+    #
+    # plt.subplots(figsize=(8, 8))  # создаем поля для отрисовки
+    # plt.pcolor(x, y, field1_phase, cmap='gray',
+    #            label="Фаза")
+    # plt.show()
 
 
-func = r0  # Отрисовываемая функция
-func_text = "r0"
-number_pixel_on_mm = 15  # число пикселей на мм
-size_image = 10  # размер картинки, которую мы генерируем
+func = r1  # Отрисовываемая функция
+func_text = "r1"
+number_pixel_on_mm = 75  # число пикселей на мм
+size_image = 5  # размер картинки, которую мы генерируем
 
 print(func_text)
 print("number_pixel_on_mm =", number_pixel_on_mm)
