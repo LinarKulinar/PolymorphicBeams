@@ -137,6 +137,8 @@ def plot_amplitude(size, count, generate=False):
 
     writedata(size, count, z1, z2)
 
+    print("Результат посчитан за: %s секунд" % (time.time() - start_time))
+
     # pcolormesh of interpolated uniform grid with log colormap
     z1_max = np.max(z1)
     z1_min = np.min(z1)
@@ -158,7 +160,7 @@ def plot_amplitude(size, count, generate=False):
 func = r0  # Отрисовываемая функция
 func_text = "r0"
 number_pixel_on_mm = 15  # число пикселей на мм
-size_image = 10  # размер картинки, которую мы генерируем
+size_image = 2  # размер картинки, которую мы генерируем
 
 print(func_text)
 print("number_pixel_on_mm =", number_pixel_on_mm)
@@ -169,6 +171,6 @@ print("summary_pixels_on_field =", summary_pixels_on_field)
 print("Вычисления запущены: ", datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S"))
 start_time = time.time()  # запоминаем время начала вычислений
 
-plot_amplitude(size_image, summary_pixels_on_field, generate=False)
 
-print("Результат посчитан за: %s секунд" % (time.time() - start_time))
+plot_amplitude(size_image, summary_pixels_on_field, generate=True)
+

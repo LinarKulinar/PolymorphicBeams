@@ -102,7 +102,7 @@ def e(x, y):
     wave_len = 532e-4
     k = 2 * np.pi / wave_len
     f = 1 / wave_len
-    g = lambda t: t  # function dependent on t
+    g = lambda t: 1  # function dependent on t
     integr_func = lambda t: g(t) * np.exp(
         -1j * k / f * func(t) * (x * np.cos(t) + y * np.sin(t)))  # function under the integral
 
@@ -154,10 +154,10 @@ def plot_amplitude(size, count, generate=False):
     plt.show()
 
 
-func = r0  # Отрисовываемая функция
+func = r1  # Отрисовываемая функция
 func_text = "r0"
-number_pixel_on_mm = 75  # число пикселей на мм
-size_image = 2  # размер картинки, которую мы генерируем
+number_pixel_on_mm = 51  # число пикселей на мм
+size_image = 1  # размер картинки, которую мы генерируем
 
 print(func_text)
 print("number_pixel_on_mm =", number_pixel_on_mm)
@@ -168,6 +168,6 @@ print("summary_pixels_on_field =", summary_pixels_on_field)
 print("Вычисления запущены: ", datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S"))
 start_time = time.time()  # запоминаем время начала вычислений
 
-plot_amplitude(size_image, summary_pixels_on_field, generate=False)
+plot_amplitude(size_image, summary_pixels_on_field, generate=True)
 
 print("Результат посчитан за: %s секунд" % (time.time() - start_time))

@@ -59,7 +59,11 @@ r1 = functools.partial(r, 0.41, 1.6, 1, 1.5, 2, 7.5, 12)  # rose
 r2 = functools.partial(r, 0.40, 0.9, 10, 4.2, 17, 1.5, 4)  # sandglass (песочные часы)
 r3 = functools.partial(r, 0.74, 1, 1, 15, 15, 15, 4)  # modified-square
 r4 = functools.partial(r, 0.0001329, 10, 10, 2, 7, 7, 5)  # starfish
-r5 = functools.partial(r, 0.81, 1, 1, 5, 5, 5, 10)  # bad spiral, flower
+
+
+def r5(t):  # good! spiral, flower
+    return r(0.81 * t, 1, 1, 5, 5, 5, 10, t);
+
 
 r6 = functools.partial(r, 0.588, 1, 1, 8.5, 15, 15, 3)  # modified-triangle blunt (тупые) corners
 r7 = functools.partial(r, 1.04, 0.7, 0.7, 24, 45, 45, 3)  # modified-triangle sharp (острые) corners
